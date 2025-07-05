@@ -1,17 +1,23 @@
 console.log("Sup");
 
 const recordBtn = document.getElementById("record-btn");
+const leds = document.querySelector("#leds");
 let ctx = null;
 
-window.addEventListener('load', () => {
-  ctx = new AudioContext();
-})
+document.body.onload = () => {
+  for (let i = 0; i < 200; i++) {
+    const led = document.createElement("div");
+    led.id = `led-${i + 1}`;
+    led.classList.add("led");
+    leds.appendChild(led);
+  }
+};
 
 recordBtn.addEventListener("click", async () => {
   try {
     const stream = await accessMicrophone();
     if (!ctx) {
-      throw new Error("Context is not defined");
+      ctx = new AudioContext();
     }
     const source = ctx.createMediaStreamSource(stream);
     const analyser = createAnalyser(ctx);
@@ -28,6 +34,15 @@ recordBtn.addEventListener("click", async () => {
 
       const transformedArray = dataArray.map((x) => x - 128);
       const amplitude = rootMeanSquare(transformedArray);
+      if (amplitude > 5) {
+        document
+          .querySelectorAll(".led")
+          .forEach((led) => led.classList.add("on"));
+      } else {
+        document
+          .querySelectorAll(".led")
+          .forEach((led) => led.classList.remove("on"));
+      }
       // Now dataArray contains your frequency data (0-255 values)
       // Each index represents a frequency bin
       //console.log(dataArray); // This is your "view" into the audio
@@ -72,12 +87,10 @@ function createAnalyser(ctx) {
 function rootMeanSquare(buffer) {
   const squared = buffer.map((x) => x * x);
   const sum = squared.reduce((acc, val) => acc + val, 0);
-  const mean = sum / buffer.length
+  const mean = sum / buffer.length;
   const rms = Math.sqrt(mean);
   return rms;
 }
-
-
 
 /*
  *
@@ -86,4 +99,3 @@ function rootMeanSquare(buffer) {
  *
  *
  */
-

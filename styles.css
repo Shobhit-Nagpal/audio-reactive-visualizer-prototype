@@ -1,0 +1,27 @@
+#leds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 20px;
+  background: #111;
+  max-width: 800px;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.led {
+  width: 16px;
+  height: 16px;
+  background-color: #333;
+  border-radius: 50%;
+  box-shadow: 0 0 4px #000;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+/* Example of an "on" state */
+.led.on {
+  background-color: #00ff00;
+  box-shadow: 0 0 8px #00ff00;
+}
+
