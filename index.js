@@ -34,14 +34,20 @@ recordBtn.addEventListener("click", async () => {
 
       const transformedArray = dataArray.map((x) => x - 128);
       const amplitude = rootMeanSquare(transformedArray);
-      if (amplitude > 5) {
+      if (amplitude > 3) {
         document
           .querySelectorAll(".led")
-          .forEach((led) => led.classList.add("on"));
+          .forEach((led) => led.classList.remove("low"));
+        document
+          .querySelectorAll(".led")
+          .forEach((led) => led.classList.add("high"));
       } else {
         document
           .querySelectorAll(".led")
-          .forEach((led) => led.classList.remove("on"));
+          .forEach((led) => led.classList.remove("high"));
+        document
+          .querySelectorAll(".led")
+          .forEach((led) => led.classList.add("low"));
       }
       // Now dataArray contains your frequency data (0-255 values)
       // Each index represents a frequency bin

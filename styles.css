@@ -20,8 +20,13 @@
 }
 
 /* Example of an "on" state */
-.led.on {
+.led.high {
   background-color: #00ff00;
   box-shadow: 0 0 8px #00ff00;
+}
+
+.led.low {
+  background-color: #ff0000;
+  box-shadow: 0 0 8px #ff0000;
 }
 
