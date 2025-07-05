@@ -3,9 +3,12 @@ console.log("Sup");
 const recordBtn = document.getElementById("record-btn");
 let ctx = null;
 
+window.addEventListener('load', () => {
+  ctx = new AudioContext();
+})
+
 recordBtn.addEventListener("click", async () => {
   try {
-    ctx = new AudioContext();
     const stream = await accessMicrophone();
     if (!ctx) {
       throw new Error("Context is not defined");
@@ -63,12 +66,24 @@ function createAnalyser(ctx) {
 
 /**
  * Returns the RMS
- * @param {AudioContext} ctx
+ * @param {Uint8Array<ArrayBuffer>} buffer
  * @returns {number}
  */
 function rootMeanSquare(buffer) {
   const squared = buffer.map((x) => x * x);
   const sum = squared.reduce((acc, val) => acc + val, 0);
-  const rms = Math.sqrt(sum);
+  const mean = sum / buffer.length
+  const rms = Math.sqrt(mean);
   return rms;
 }
+
+
+
+/*
+ *
+ *
+ * LED Module
+ *
+ *
+ */
+
