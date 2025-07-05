@@ -16,14 +16,19 @@ recordBtn.addEventListener("click", async () => {
 
     source.connect(analyser);
 
-    const buffLength = analyser.frequencyBinCount;
+    const buffLength = analyser.fftSize;
     const dataArray = new Uint8Array(buffLength);
 
     function visualize() {
-      analyser.getByteFrequencyData(dataArray);
+      //      analyser.getByteFrequencyData(dataArray);
+      analyser.getByteTimeDomainData(dataArray);
+
+      const transformedArray = dataArray.map((x) => x - 128);
+      const amplitude = rootMeanSquare(transformedArray);
       // Now dataArray contains your frequency data (0-255 values)
       // Each index represents a frequency bin
-      console.log(dataArray); // This is your "view" into the audio
+      //console.log(dataArray); // This is your "view" into the audio
+      console.log(amplitude);
       requestAnimationFrame(visualize);
     }
     visualize(dataArray, analyser);
@@ -54,4 +59,16 @@ async function accessMicrophone() {
  */
 function createAnalyser(ctx) {
   return ctx.createAnalyser();
+}
+
+/**
+ * Returns the RMS
+ * @param {AudioContext} ctx
+ * @returns {number}
+ */
+function rootMeanSquare(buffer) {
+  const squared = buffer.map((x) => x * x);
+  const sum = squared.reduce((acc, val) => acc + val, 0);
+  const rms = Math.sqrt(sum);
+  return rms;
 }
