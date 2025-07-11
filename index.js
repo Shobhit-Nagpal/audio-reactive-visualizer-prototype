@@ -5,10 +5,22 @@ const leds = document.querySelector("#leds");
 let ctx = null;
 
 document.body.onload = () => {
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 100; i++) {
     const led = document.createElement("div");
     led.id = `led-${i + 1}`;
+    led.classList.add("led", "bass");
+    leds.appendChild(led);
+  }
+  for (let i = 0; i < 200; i++) {
+    const led = document.createElement("div");
+    led.id = `led-${i + 1 + 100}`;
     led.classList.add("led");
+    leds.appendChild(led);
+  }
+  for (let i = 0; i < 100; i++) {
+    const led = document.createElement("div");
+    led.id = `led-${i + 1 + 300}`;
+    led.classList.add("led", "bass");
     leds.appendChild(led);
   }
 };
@@ -26,36 +38,57 @@ recordBtn.addEventListener("click", async () => {
     source.connect(analyser);
 
     const buffLength = analyser.fftSize;
-    const dataArray = new Uint8Array(buffLength);
+    const amplitudeDataArray = new Uint8Array(buffLength);
+    const frequencyDataArray = new Uint8Array(buffLength);
 
     function visualize() {
-      //      analyser.getByteFrequencyData(dataArray);
-      analyser.getByteTimeDomainData(dataArray);
+      analyser.getByteFrequencyData(frequencyDataArray);
+      analyser.getByteTimeDomainData(amplitudeDataArray);
 
-      const transformedArray = dataArray.map((x) => x - 128);
+      const bassRange = frequencyDataArray.slice(0, 64); // Low frequencies
+      const midRange = frequencyDataArray.slice(64, 256); // Mid frequencies
+      const trebRange = frequencyDataArray.slice(256, 512); // High frequencies
+
+      const transformedArray = amplitudeDataArray.map((x) => x - 128);
       const amplitude = rootMeanSquare(transformedArray);
-      if (amplitude > 3) {
-        document
-          .querySelectorAll(".led")
-          .forEach((led) => led.classList.remove("low"));
-        document
-          .querySelectorAll(".led")
-          .forEach((led) => led.classList.add("high"));
-      } else {
-        document
-          .querySelectorAll(".led")
-          .forEach((led) => led.classList.remove("high"));
-        document
-          .querySelectorAll(".led")
-          .forEach((led) => led.classList.add("low"));
-      }
+      const bassLevel =
+        bassRange.reduce((sum, val) => sum + val, 0) / bassRange.length;
+
+      // Update different LED sections
+      updateAmplitudeLEDs(amplitude);
+      updateBassLEDs(bassLevel);
+
+      //      if (amplitude > 3) {
+      //        Array.from(document.querySelectorAll(".led"))
+      //          .filter(
+      //            (led) =>
+      //              parseInt(led.id.split("-")[1]) >= 100 &&
+      //              parseInt(led.id.split("-")[1]) <= 300,
+      //          )
+      //          .forEach((led) => led.classList.remove("low"));
+      //        Array.from(document.querySelectorAll(".led"))
+      //          .filter(
+      //            (led) =>
+      //              parseInt(led.id.split("-")[1]) >= 100 &&
+      //              parseInt(led.id.split("-")[1]) <= 300,
+      //          )
+      //          .forEach((led) => led.classList.add("high"));
+      //      } else {
+      //        document
+      //          .querySelectorAll(".led")
+      //          .forEach((led) => led.classList.remove("high"));
+      //        document
+      //          .querySelectorAll(".led")
+      //          .forEach((led) => led.classList.add("low"));
+      //      }
       // Now dataArray contains your frequency data (0-255 values)
       // Each index represents a frequency bin
       //console.log(dataArray); // This is your "view" into the audio
-      console.log(amplitude);
+      //      console.log(amplitude);
+      //      console.log('bass:', bassRange)
       requestAnimationFrame(visualize);
     }
-    visualize(dataArray, analyser);
+    visualize(amplitudeDataArray, analyser);
   } catch (err) {
     if (err instanceof DOMException) {
       console.error(err);
@@ -105,3 +138,35 @@ function rootMeanSquare(buffer) {
  *
  *
  */
+function updateAmplitudeLEDs(amplitude) {
+  const amplitudeLEDs = document.querySelectorAll(".led:not(.bass)"); // LEDs 1-100 and 301-400
+
+  if (amplitude > 2.5) {
+    amplitudeLEDs.forEach((led) => {
+      led.classList.remove("low");
+      led.classList.add("high");
+    });
+  } else {
+    amplitudeLEDs.forEach((led) => {
+      led.classList.remove("high");
+      led.classList.add("low");
+    });
+  }
+}
+
+function updateBassLEDs(bassLevel) {
+  const bassLEDs = document.querySelectorAll(".led.bass"); // LEDs 101-300
+
+  if (bassLevel > 110) {
+    // Adjust threshold as needed
+    bassLEDs.forEach((led) => {
+      led.classList.remove("low");
+      led.classList.add("high");
+    });
+  } else {
+    bassLEDs.forEach((led) => {
+      led.classList.remove("high");
+      led.classList.add("low");
+    });
+  }
+}
