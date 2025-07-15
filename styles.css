@@ -4,7 +4,7 @@
   gap: 6px;
   padding: 20px;
   background: #111;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   justify-content: center;
 }
@@ -28,14 +28,4 @@
 .led.low {
   background-color: #ff0000;
   box-shadow: 0 0 8px #ff0000;
-}
-
-.led.bass.high {
-  background-color: #0000ff;
-  box-shadow: 0 0 8px #0000ff;
-}
-
-.led.bass.low {
-  background-color: #00ff00;
-  box-shadow: 0 0 8px #00ff00;
 }
