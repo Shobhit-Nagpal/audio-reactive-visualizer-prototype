@@ -1,5 +1,26 @@
 const startBtn = document.getElementById("start-btn");
 const canvas = document.getElementById("canvas");
+
+/*
+ * =================== Web socket start ====================
+ */
+const ws = new WebSocket("ws://10.106.222.59/ws");
+ws.onopen = function () {
+  document.getElementById("status").innerHTML = "Connected to ESP32";
+};
+
+ws.onmessage = function(event) {
+  document.getElementById('messages').innerHTML += '<br>ESP32 says: ' + event.data;
+};
+
+ws.onclose = function() {
+  document.getElementById('status').innerHTML = 'Disconnected';
+};
+
+/*
+ * =================== Web socket end ====================
+ */
+
 /**
  * @type {AudioContext}
  */
@@ -32,7 +53,10 @@ async function init() {
   const bufferLength = analyser.frequencyBinCount; // fftSize / 2
   const freqDataArray = new Uint8Array(bufferLength);
   const ampDataArray = new Uint8Array(bufferLength);
-  const range = createFrequencyRanges(audioContext.sampleRate, analyser.fftSize)
+  const range = createFrequencyRanges(
+    audioContext.sampleRate,
+    analyser.fftSize,
+  );
 
   function draw() {
     // Do the visual part here
@@ -45,6 +69,8 @@ async function init() {
     console.log("f:", frequencies);
     console.log("a:", amplitude);
 
+    sendMessage(amplitude);
+
     requestAnimationFrame(draw);
   }
 
@@ -53,7 +79,7 @@ async function init() {
 
 /**
  * Gets audio source by asking user about device perms
- * @returns {MediaStreamAudioSourceNode | null}
+ * @returns {Promise<MediaStreamAudioSourceNode> | Promise<null>}
  */
 async function getAudioSource() {
   try {
@@ -76,10 +102,7 @@ async function getAudioSource() {
 function extractFrequencyFeatures(dataArray, range) {
   console.log("length:", dataArray.length);
   const bass = dataArray.slice(range.BASS.LOWER, range.BASS.UPPER);
-  const lowMids = dataArray.slice(
-    range.LOW_MIDS.LOWER,
-    range.LOW_MIDS.UPPER,
-  );
+  const lowMids = dataArray.slice(range.LOW_MIDS.LOWER, range.LOW_MIDS.UPPER);
   const mids = dataArray.slice(range.MIDS.LOWER, range.MIDS.UPPER);
   const highMids = dataArray.slice(
     range.HIGH_MIDS.LOWER,
@@ -131,7 +154,7 @@ function frequencyToBin(frequency, sampleRate, fftSize) {
 /**
  * @param {number} sampleRate
  * @param {number} fftSize
- * @return {object} - Frequency ranges object with upper and lower values 
+ * @return {object} - Frequency ranges object with upper and lower values
  */
 function createFrequencyRanges(sampleRate, fftSize) {
   return {
@@ -157,3 +180,18 @@ function createFrequencyRanges(sampleRate, fftSize) {
     },
   };
 }
+
+/**
+ * Send message to Websocket server
+ * @param {number} amplitude 
+  */
+function sendMessage(amplitude) {
+  const jsonData = {
+    number: parseInt(amplitude) || 0,
+    name: "amplitude",
+    timestamp: Date.now(),
+  }
+  ws.send(JSON.stringify(jsonData));
+  document.getElementById('messages').innerHTML += '<br>Sent: ' + JSON.stringify(jsonData);
+}
+
